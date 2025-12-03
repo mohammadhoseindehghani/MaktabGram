@@ -10,15 +10,16 @@ namespace MaktabGram.Domain.Core.UserAgg.Contracts
 {
     public interface IUserApplicationService
     {
-        public Result<UserLoginOutputDto> Login(string mobile, string password);
-        public Result<bool> Register(RegisterUserInputDto model);
-        List<GetUserSummaryDto> GetUsersSummary();
-        public UpdateGetUserDto GetUpdateUserDetails(int userId);
-        public void Active(int userId);
-        public void DeActive(int userId);
-        public Result<bool> Update(int userId, UpdateGetUserDto model);
-        public GetUserProfileDto GetProfile(int searchedUserId , int curentUserId);
-        public List<SearchResultDto> Search(string username, int userId);
-        public string GetImageProfileUrl(int userId);
+        Task<Result<UserLoginOutputDto>> Login(string mobile, string password, CancellationToken cancellationToken);
+        Task<Result<bool>> Register(RegisterUserInputDto model, CancellationToken cancellationToken);
+        Task<List<GetUserSummaryDto>> GetUsersSummary(CancellationToken cancellationToken);
+        Task<UpdateGetUserDto> GetUpdateUserDetails(int userId, CancellationToken cancellationToken);
+        Task Active(int userId, CancellationToken cancellationToken);
+        Task DeActive(int userId, CancellationToken cancellationToken);
+        Task<Result<bool>> Update(int userId, UpdateGetUserDto model, CancellationToken cancellationToken);
+        Task<GetUserProfileDto> GetProfile(int searchedUserId, int curentUserId, CancellationToken cancellationToken);
+        Task<List<SearchResultDto>> Search(string username, int userId, CancellationToken cancellationToken);
+        Task<string> GetImageProfileUrl(int userId, CancellationToken cancellationToken);
     }
+
 }

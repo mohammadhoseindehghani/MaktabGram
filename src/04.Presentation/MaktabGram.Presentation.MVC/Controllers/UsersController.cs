@@ -6,16 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaktabGram.Presentation.MVC.Controllers
 {
-    public class UsersController  : Controller
+    public class UsersController(IUserApplicationService userApplicationService) : Controller
     {
-        private readonly IUserApplicationService userApplicationService;
-
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var users = userApplicationService.GetUsersSummary();
-
-            return View( users);
+            var users = await userApplicationService.GetUsersSummary(cancellationToken);
+            return View(users);
         }
 
         [HttpGet]
@@ -24,42 +21,47 @@ namespace MaktabGram.Presentation.MVC.Controllers
             return View();
         }
 
-
         [HttpPost]
-        public IActionResult Create(RegisterUserInputDto model)
+        public async Task<IActionResult> Create(RegisterUserInputDto model, CancellationToken cancellationToken)
         {
-            userApplicationService.Register(model);
-            return View("Index");
-        }
-        [HttpGet]
-        public IActionResult Active(int userId)
-        {
-            userApplicationService.Active(userId);
+            var result = await userApplicationService.Register(model, cancellationToken);
 
+            if (result.IsSuccess)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Error = result.Message;
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Active(int userId, CancellationToken cancellationToken)
+        {
+            await userApplicationService.Active(userId, cancellationToken);
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public IActionResult DeActive(int userId)
+        public async Task<IActionResult> DeActive(int userId, CancellationToken cancellationToken)
         {
-            userApplicationService.DeActive(userId);
-
+            await userApplicationService.DeActive(userId, cancellationToken);
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public IActionResult Update(int userId)
+        public async Task<IActionResult> Update(int userId, CancellationToken cancellationToken)
         {
-            var result = userApplicationService.GetUpdateUserDetails(userId);
-
+            var result = await userApplicationService.GetUpdateUserDetails(userId, cancellationToken);
             return View(result);
         }
 
         [HttpPost]
-        public IActionResult Update(UpdateGetUserDto model)
+        public async Task<IActionResult> Update(UpdateGetUserDto model, CancellationToken cancellationToken)
         {
-            var result = userApplicationService.Update(model.Id, model);
-            if(result.IsSuccess)
+            var result = await userApplicationService.Update(model.Id, model, cancellationToken);
+
+            if (result.IsSuccess)
             {
                 return RedirectToAction("Index");
             }
@@ -67,4 +69,5 @@ namespace MaktabGram.Presentation.MVC.Controllers
             return View(model);
         }
     }
+
 }

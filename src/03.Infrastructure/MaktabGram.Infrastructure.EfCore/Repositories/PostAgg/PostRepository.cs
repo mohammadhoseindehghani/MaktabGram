@@ -12,10 +12,10 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.PostAgg
 {
     public class PostRepository(AppDbContext appDbContext) : IPostRepository
     {
-
-        public GetPostDetailsDto? GetPostDetails(int postId)
+        public async Task<GetPostDetailsDto?> GetPostDetails(int postId, CancellationToken cancellationToken)
         {
-            var post = appDbContext.Posts.Include(p => p.Comments).ThenInclude(c => c.User)
+            var post = await appDbContext.Posts
+                .Include(p => p.Comments).ThenInclude(c => c.User)
                 .Where(x => x.Id == postId)
                 .Select(p => new GetPostDetailsDto
                 {
@@ -27,16 +27,17 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.PostAgg
                     CreateAt = p.CreatedAt.ToPersianString("dddd, dd MMMM,yyyy"),
                     ProfileImgUrl = p.User.Profile.ProfileImageUrl,
                     Comments = p.Comments,
-                }).FirstOrDefault();
+                })
+                .FirstOrDefaultAsync(cancellationToken);
 
             return post;
         }
 
-        public List<GetPostForFeedsDto> GetFeedPosts(int userId, int page, int pageSize)
+        public async Task<List<GetPostForFeedsDto>> GetFeedPosts(int userId, int page, int pageSize, CancellationToken cancellationToken)
         {
-
-            var posts = appDbContext.Posts.Include(p => p.Comments).ThenInclude(c => c.User)
-               .Where(x => x.User.Followers.Any(x => x.FollowerId == userId))
+            var posts = await appDbContext.Posts
+                .Include(p => p.Comments).ThenInclude(c => c.User)
+                .Where(x => x.User.Followers.Any(x => x.FollowerId == userId))
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((page - 1) * pageSize).Take(pageSize)
                 .Select(p => new GetPostForFeedsDto
@@ -50,12 +51,13 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.PostAgg
                     ProfileImgUrl = p.User.Profile.ProfileImageUrl,
                     Comments = p.Comments,
                     UserLikeThisPost = p.PostLikes.Any(x => x.UserId == userId),
-                }).ToList();
+                })
+                .ToListAsync(cancellationToken);
 
             return posts;
         }
 
-        public int Create(CreatePostInputDto model)
+        public async Task<int> Create(CreatePostInputDto model, CancellationToken cancellationToken)
         {
             var post = new Post
             {
@@ -64,46 +66,46 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.PostAgg
                 OpenComment = model.ShowComment,
                 UserId = model.UserId,
                 CreatedAt = DateTime.Now,
-                TaggedUsers = model.TaggedUsers.Select(x => new PostTag()
-                {
-                    TaggedUserId = x,
-                }).ToList(),
+                TaggedUsers = model.TaggedUsers.Select(x => new PostTag { TaggedUserId = x }).ToList(),
             };
 
-            appDbContext.Posts.Add(post);
-            appDbContext.SaveChanges();
+            await appDbContext.Posts.AddAsync(post, cancellationToken);
+            await appDbContext.SaveChangesAsync(cancellationToken);
 
             return post.Id;
         }
 
-        public int GetPostCount(int userId)
+        public async Task<int> GetPostCount(int userId, CancellationToken cancellationToken)
         {
-            var posts = appDbContext.Posts
-               .Count(x => x.User.Followers.Any(x => x.FollowerId == userId));
-            return posts;
+            return await appDbContext.Posts
+                .CountAsync(x => x.User.Followers.Any(x => x.FollowerId == userId), cancellationToken);
         }
 
-        public void Like(int userId, int PostId)
+        public async Task Like(int userId, int postId, CancellationToken cancellationToken)
         {
             var postLike = new PostLike
             {
                 LikedAt = DateTime.Now,
-                PostId = PostId,
+                PostId = postId,
                 UserId = userId
             };
 
-            appDbContext.PostLikes.Add(postLike);
-            appDbContext.SaveChanges();
+            await appDbContext.PostLikes.AddAsync(postLike, cancellationToken);
+            await appDbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public bool UserLikePost(int userId, int PostId)
+        public async Task<bool> UserLikePost(int userId, int postId, CancellationToken cancellationToken)
         {
-            return appDbContext.PostLikes.Any(x=>x.UserId == userId && x.PostId == PostId);
+            return await appDbContext.PostLikes
+                .AnyAsync(x => x.UserId == userId && x.PostId == postId, cancellationToken);
         }
 
-        public void DisLike(int userId, int PostId)
+        public async Task DisLike(int userId, int postId, CancellationToken cancellationToken)
         {
-             appDbContext.PostLikes.Where(x=>x.UserId == userId && x.PostId == PostId).ExecuteDelete();
+            await appDbContext.PostLikes
+                .Where(x => x.UserId == userId && x.PostId == postId)
+                .ExecuteDeleteAsync(cancellationToken);
         }
     }
+
 }

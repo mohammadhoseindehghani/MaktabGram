@@ -6,7 +6,7 @@ namespace MaktabGram.Infrastructure.FileService.Services
 {
     public class FileService : IFileService
     {
-        public void Delete(string fileName)
+        public async Task Delete(string fileName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(fileName))
                 return;
@@ -15,30 +15,27 @@ namespace MaktabGram.Infrastructure.FileService.Services
 
             if (File.Exists(fullPath))
             {
-                File.Delete(fullPath);
+                await Task.Run(() => File.Delete(fullPath), cancellationToken);
             }
         }
 
-
-        public string Upload(IFormFile file , string folder)
+        public async Task<string> Upload(IFormFile file, string folder, CancellationToken cancellationToken)
         {
-
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Files" ,folder);
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Files", folder);
 
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
             var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            await using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
             {
-                 file.CopyTo(stream);
+                await file.CopyToAsync(stream, cancellationToken);
             }
 
-            return $"{Path.Combine("Files", folder,uniqueFileName)}";
+            return Path.Combine("Files", folder, uniqueFileName);
         }
     }
+
 }

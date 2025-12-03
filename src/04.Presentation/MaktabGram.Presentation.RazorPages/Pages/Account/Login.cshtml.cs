@@ -22,31 +22,31 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
         {
             if (UserIsLoggedIn())
             {
-                 return RedirectToPage("/Account/Profile");
+                return RedirectToPage("/Account/Profile");
             }
 
             return Page();
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
         {
-            var loginResullt = userApplicationService.Login(Model.Mobile, Model.Password);
+            var loginResult = await userApplicationService.Login(Model.Mobile, Model.Password, cancellationToken);
 
-            if (loginResullt.IsSuccess)
+            if (loginResult.IsSuccess)
             {
-
-                cookieService.Set("Id", loginResullt.Data.Id.ToString());
-                cookieService.Set("IsAdmin", loginResullt.Data.IsAdmin ? "1" : "0");
-                cookieService.Set("Username", loginResullt.Data.Username);
+                cookieService.Set("Id", loginResult.Data.Id.ToString());
+                cookieService.Set("IsAdmin", loginResult.Data.IsAdmin ? "1" : "0");
+                cookieService.Set("Username", loginResult.Data.Username);
 
                 return RedirectToPage("/Account/Profile");
             }
             else
             {
-                Message = loginResullt.Message;
+                Message = loginResult.Message;
             }
 
             return Page();
         }
     }
+
 }

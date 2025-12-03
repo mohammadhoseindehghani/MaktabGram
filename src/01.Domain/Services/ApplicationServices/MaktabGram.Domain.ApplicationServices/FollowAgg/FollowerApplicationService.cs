@@ -5,14 +5,14 @@ namespace MaktabGram.Domain.ApplicationServices.FollowAgg
 {
     public class FollowerApplicationService (IFollowerService followerService) : IFollowerApplicationService
     {
-        public void Follow(int userId, int FollowedId)
+        public async Task Follow(int userId, int FollowedId,CancellationToken cancellationToken)
         {
-            followerService.Follow(userId, FollowedId);
+            await followerService.Follow(userId, FollowedId, cancellationToken);
         }
 
-        public void UnFollow(int userId, int FollowedId)
+        public async Task UnFollow(int userId, int FollowedId , CancellationToken cancellationToken)
         {
-            followerService.UnFollow(userId, FollowedId);
+            await followerService.UnFollow(userId, FollowedId,cancellationToken);
         }
     }
 }

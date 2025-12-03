@@ -2,7 +2,8 @@
 {
     public interface IFollowerRepository
     {
-        public void Follow(int userId, int FollowedId);
-        public void UnFollow(int userId, int FollowedId);
+        Task Follow(int userId, int followedId, CancellationToken cancellationToken);
+        Task UnFollow(int userId, int followedId, CancellationToken cancellationToken);
     }
+
 }

@@ -8,75 +8,70 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
 {
-    public class UserRepository (AppDbContext dbContext) : IUserRepository
+    public class UserRepository(AppDbContext dbContext) : IUserRepository
     {
-
-        public void Active(int userId)
+        public async Task Active(int userId, CancellationToken cancellationToken)
         {
-            dbContext.Users
-               .ExecuteUpdate(setters => setters
-                   .SetProperty(u => u.IsActive, true));
+            await dbContext.Users
+                .Where(u => u.Id == userId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.IsActive, true), cancellationToken);
         }
 
-        public void DeActive(int userId)
+        public async Task DeActive(int userId, CancellationToken cancellationToken)
         {
-            dbContext.Users
-               .ExecuteUpdate(setters => setters
-                   .SetProperty(u => u.IsActive, false));
+            await dbContext.Users
+                .Where(u => u.Id == userId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.IsActive, false), cancellationToken);
         }
 
-        public List<GetUserSummaryDto> GetUsersSummary()
+        public async Task<List<GetUserSummaryDto>> GetUsersSummary(CancellationToken cancellationToken)
         {
-            var user = dbContext.Users
-            .Select(u => new GetUserSummaryDto
-            {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Profile.Email,
-                Mobile = u.Mobile.Value,
-                FirstName = u.Profile.FirstName,
-                LastName = u.Profile.LastName,
-                IsAdmin = u.IsAdmin,
-                Status = u.IsActive,
-                CreateAt = u.CreatedAt,
-                ImageProfileUrl = u.Profile.ProfileImageUrl,
-            }).ToList();
-
-            return user;
+            return await dbContext.Users
+                .Select(u => new GetUserSummaryDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Profile.Email,
+                    Mobile = u.Mobile.Value,
+                    FirstName = u.Profile.FirstName,
+                    LastName = u.Profile.LastName,
+                    IsAdmin = u.IsAdmin,
+                    Status = u.IsActive,
+                    CreateAt = u.CreatedAt,
+                    ImageProfileUrl = u.Profile.ProfileImageUrl
+                })
+                .ToListAsync(cancellationToken);
         }
 
-        public bool IsActive(string mobile)
+        public async Task<bool> IsActive(string mobile, CancellationToken cancellationToken)
         {
             var mobileValue = Mobile.Create(mobile);
-
-            return dbContext.Users.Any(u => u.Mobile.Value == mobileValue.Value && u.IsActive);
+            return await dbContext.Users.AnyAsync(u => u.Mobile.Value == mobileValue.Value && u.IsActive, cancellationToken);
         }
 
-        public UserLoginOutputDto? Login(string mobile, string password)
+        public async Task<UserLoginOutputDto?> Login(string mobile, string password, CancellationToken cancellationToken)
         {
-            var user = dbContext.Users
-            .Where(u => u.Mobile.Value == mobile && u.PasswordHash == password)
-            .Select(u => new UserLoginOutputDto
-            {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Profile.Email,
-                Mobile = mobile,
-                FirstName = u.Profile.FirstName,
-                LastName = u.Profile.LastName,
-                IsAdmin = u.IsAdmin,
-            }).AsEnumerable().FirstOrDefault();
-
-            return user;
+            return await dbContext.Users
+                .Where(u => u.Mobile.Value == mobile && u.PasswordHash == password)
+                .Select(u => new UserLoginOutputDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Profile.Email,
+                    Mobile = mobile,
+                    FirstName = u.Profile.FirstName,
+                    LastName = u.Profile.LastName,
+                    IsAdmin = u.IsAdmin
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
-
-        public bool MobileExists(string mobile)
+        public async Task<bool> MobileExists(string mobile, CancellationToken cancellationToken)
         {
-            return dbContext.Users.Any(u => u.Mobile.Value == mobile);
+            return await dbContext.Users.AnyAsync(u => u.Mobile.Value == mobile, cancellationToken);
         }
 
-        public bool Register(RegisterUserInputDto model)
+        public async Task<bool> Register(RegisterUserInputDto model, CancellationToken cancellationToken)
         {
             var entity = new User
             {
@@ -88,43 +83,40 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
                 {
                     FirstName = model.FirstName,
                     LastName = model.LastName,
-                    ProfileImageUrl = model.ProfileImageUrl,
+                    ProfileImageUrl = model.ProfileImageUrl
                 }
             };
 
-            dbContext.Users.Add(entity);
-            return dbContext.SaveChanges() > 1;
+            await dbContext.Users.AddAsync(entity, cancellationToken);
+            return await dbContext.SaveChangesAsync(cancellationToken) > 1;
         }
 
-        public UpdateGetUserDto GetUpdateUserDetails(int userId)
+        public async Task<UpdateGetUserDto> GetUpdateUserDetails(int userId, CancellationToken cancellationToken)
         {
-            var user = dbContext.Users
-            .Where(x => x.Id == userId)
-            .AsNoTracking()
-            .Select(u => new UpdateGetUserDto
-            {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Profile.Email,
-                Mobile = u.Mobile.Value,
-                FirstName = u.Profile.FirstName,
-                LastName = u.Profile.LastName,
-                IsAdmin = u.IsAdmin,
-                ImageProfileUrl = u.Profile.ProfileImageUrl,
-            }).FirstOrDefault();
-
-            return user;
+            return await dbContext.Users
+                .Where(x => x.Id == userId)
+                .AsNoTracking()
+                .Select(u => new UpdateGetUserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Profile.Email,
+                    Mobile = u.Mobile.Value,
+                    FirstName = u.Profile.FirstName,
+                    LastName = u.Profile.LastName,
+                    IsAdmin = u.IsAdmin,
+                    ImageProfileUrl = u.Profile.ProfileImageUrl
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
-
-
-        public bool Update(int userId, UpdateGetUserDto model)
+        public async Task<bool> Update(int userId, UpdateGetUserDto model, CancellationToken cancellationToken)
         {
             try
             {
-                var user = dbContext.Users
-                .Include(u => u.Profile)
-                .FirstOrDefault(u => u.Id == userId);
+                var user = await dbContext.Users
+                    .Include(u => u.Profile)
+                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
                 if (user is not null)
                 {
@@ -134,17 +126,12 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
                     user.Profile.Email = model.Email;
                     user.Profile.FirstName = model.FirstName;
                     user.Profile.LastName = model.LastName;
-
-                    user.PasswordHash = (!string.IsNullOrEmpty(model.Password)) ?
-                        model.Password : user.PasswordHash;
+                    user.PasswordHash = (!string.IsNullOrEmpty(model.Password)) ? model.Password : user.PasswordHash;
 
                     if (!string.IsNullOrEmpty(model.ImageProfileUrl))
                         user.Profile.ProfileImageUrl = model.ImageProfileUrl;
 
-
-
-
-                    dbContext.SaveChanges();
+                    await dbContext.SaveChangesAsync(cancellationToken);
                     return true;
                 }
 
@@ -156,12 +143,12 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
             }
         }
 
-        public string GetImageProfileUrl(int userId)
+        public async Task<string> GetImageProfileUrl(int userId, CancellationToken cancellationToken)
         {
-            var imgAddress = dbContext.Users
+            var imgAddress = await dbContext.Users
                 .Where(u => u.Id == userId)
                 .Select(u => u.Profile.ProfileImageUrl)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (imgAddress is null)
                 throw new NullReferenceException("Profile image URL not found.");
@@ -169,16 +156,17 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
             return imgAddress;
         }
 
-        public List<int> GetUserIdsBy(List<string> userNames)
+        public async Task<List<int>> GetUserIdsBy(List<string> userNames, CancellationToken cancellationToken)
         {
-            return dbContext.Users
+            return await dbContext.Users
                 .Where(u => userNames.Contains(u.Username))
-                .Select(u => u.Id).ToList();
+                .Select(u => u.Id)
+                .ToListAsync(cancellationToken);
         }
 
-        public GetUserProfileDto GetProfile(int searchedUserId)
+        public async Task<GetUserProfileDto> GetProfile(int searchedUserId, CancellationToken cancellationToken)
         {
-            var profile = dbContext.Users
+            return await dbContext.Users
                 .Where(u => u.Id == searchedUserId)
                 .Select(u => new GetUserProfileDto
                 {
@@ -187,16 +175,14 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
                     Bio = u.Profile.Bio,
                     ImgProfileUrl = u.Profile.ProfileImageUrl,
                     FollowerCount = u.Followers.Count,
-                    FollowingCount = u.Followings.Count,
-                });
-
-           
-            return profile.FirstOrDefault();
+                    FollowingCount = u.Followings.Count
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public GetUserProfileDto GetProfileWithPosts(int searchedUserId, int curentUserId)
+        public async Task<GetUserProfileDto> GetProfileWithPosts(int searchedUserId, int curentUserId, CancellationToken cancellationToken)
         {
-            var profile = dbContext.Users
+            return await dbContext.Users
                 .Where(u => u.Id == searchedUserId)
                 .Select(u => new GetUserProfileDto
                 {
@@ -226,35 +212,35 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
                         CommentCount = tp.Post.Comments.Count,
                         LikeCount = tp.Post.PostLikes.Count,
                         ImgPostUrl = tp.Post.ImageUrl
-                    }).ToList(),
-                });
-
-           
-            return profile.FirstOrDefault();
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public List<SearchResultDto> Search(string username , int userId)
+        public async Task<List<SearchResultDto>> Search(string username, int userId, CancellationToken cancellationToken)
         {
-            var query = dbContext.Users.OrderByDescending(x => x.CreatedAt)
+            var query = dbContext.Users
+                .OrderByDescending(x => x.CreatedAt)
                 .Select(u => new SearchResultDto
                 {
                     UserId = u.Id,
                     UserName = u.Username,
                     ImgProfileUrl = u.Profile.ProfileImageUrl,
                     IsFollowed = u.Followers.Any(f => f.FollowerId == userId)
-                }).Take(10);
+                })
+                .Take(10);
 
-            if(!string.IsNullOrEmpty(username))
-            {
+            if (!string.IsNullOrEmpty(username))
                 query = query.Where(u => u.UserName.Contains(username));
-            }
 
-            return query.ToList();
+            return await query.ToListAsync(cancellationToken);
         }
 
-        public bool IsFolllow(int searchedUserId, int curentUserId)
+        public async Task<bool> IsFolllow(int searchedUserId, int curentUserId, CancellationToken cancellationToken)
         {
-            return dbContext.Followers.Any(f => f.FollowerId == curentUserId && f.FollowedId == searchedUserId);
+            return await dbContext.Followers
+                .AnyAsync(f => f.FollowerId == curentUserId && f.FollowedId == searchedUserId, cancellationToken);
         }
     }
+
 }

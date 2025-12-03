@@ -9,36 +9,35 @@ using MaktabGram.Infrastructure.FileService.Contracts;
 
 namespace MaktabGram.Domain.ApplicationServices.UserAgg
 {
-    public class UserApplicationService(IUserService userService,
-        IFileService fileService) : IUserApplicationService
+    public class UserApplicationService(IUserService userService, IFileService fileService) : IUserApplicationService
     {
-        public void Active(int userId)
+        public async Task Active(int userId, CancellationToken cancellationToken)
         {
-            userService.Active(userId);
+            await userService.Active(userId, cancellationToken);
         }
 
-        public void DeActive(int userId)
+        public async Task DeActive(int userId, CancellationToken cancellationToken)
         {
-            userService.DeActive(userId);
+            await userService.DeActive(userId, cancellationToken);
         }
 
-        public UpdateGetUserDto GetUpdateUserDetails(int userId)
+        public async Task<UpdateGetUserDto> GetUpdateUserDetails(int userId, CancellationToken cancellationToken)
         {
-            return userService.GetUpdateUserDetails(userId);
+            return await userService.GetUpdateUserDetails(userId, cancellationToken);
         }
 
-        public List<GetUserSummaryDto> GetUsersSummary()
+        public async Task<List<GetUserSummaryDto>> GetUsersSummary(CancellationToken cancellationToken)
         {
-            return userService.GetUsersSummary();
+            return await userService.GetUsersSummary(cancellationToken);
         }
 
-        public Result<UserLoginOutputDto> Login(string mobile, string password)
+        public async Task<Result<UserLoginOutputDto>> Login(string mobile, string password, CancellationToken cancellationToken)
         {
-            var login = userService.Login(mobile, password.ToMd5Hex());
+            var login = await userService.Login(mobile, password.ToMd5Hex(), cancellationToken);
 
             if (login is not null)
             {
-                var isActive = userService.IsActive(mobile);
+                var isActive = await userService.IsActive(mobile, cancellationToken);
 
                 return isActive
                     ? Result<UserLoginOutputDto>.Success("لاگین با موفقیت انجام شد.", login)
@@ -50,29 +49,30 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
             }
         }
 
-        public Result<bool> Register(RegisterUserInputDto model)
+        public async Task<Result<bool>> Register(RegisterUserInputDto model, CancellationToken cancellationToken)
         {
-            return userService.Register(model);
+            return await userService.Register(model, cancellationToken);
         }
 
-        public Result<bool> Update(int userId, UpdateGetUserDto model)
+        public async Task<Result<bool>> Update(int userId, UpdateGetUserDto model, CancellationToken cancellationToken)
         {
-            return userService.Update(userId, model);
+            return await userService.Update(userId, model, cancellationToken);
         }
 
-        public List<SearchResultDto> Search(string username, int userId)
+        public async Task<List<SearchResultDto>> Search(string username, int userId, CancellationToken cancellationToken)
         {
-            return userService.Search(username, userId);
+            return await userService.Search(username, userId, cancellationToken);
         }
 
-        public GetUserProfileDto GetProfile(int searchedUserId, int curentUserId)
+        public async Task<GetUserProfileDto> GetProfile(int searchedUserId, int curentUserId, CancellationToken cancellationToken)
         {
-            return userService.GetProfile(searchedUserId, curentUserId);
+            return await userService.GetProfile(searchedUserId, curentUserId, cancellationToken);
         }
 
-        public string GetImageProfileUrl(int userId)
+        public async Task<string> GetImageProfileUrl(int userId, CancellationToken cancellationToken)
         {
-            return userService.GetImageProfileUrl(userId);
+            return await userService.GetImageProfileUrl(userId, cancellationToken);
         }
     }
+
 }

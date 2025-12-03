@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace MaktabGram.Presentation.RazorPages.Pages.Posts
 {
-    public class CreateModel (IPostApplicationService postApplicationService) : BasePageModel
+    public class CreateModel(IPostApplicationService postApplicationService) : BasePageModel
     {
         [BindProperty]
         public CreatePostInputDto Model { get; set; }
@@ -16,13 +16,12 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Posts
 
         public void OnGet()
         {
-
         }
 
-        public IActionResult OnPost() 
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
         {
             Model.UserId = GetUserId();
-            var result = postApplicationService.Create(Model);
+            var result = await postApplicationService.Create(Model, cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -33,7 +32,7 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Posts
                 Message = result.Message;
                 return Page();
             }
-
         }
     }
+
 }

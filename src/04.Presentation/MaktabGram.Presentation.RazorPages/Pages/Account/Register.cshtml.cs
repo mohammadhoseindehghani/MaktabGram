@@ -14,7 +14,7 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
         public string? Username { get; set; }
         public string Password { get; set; }
     }
-    public class RegisterModel (IUserApplicationService userApplicationService) : PageModel
+    public class RegisterModel(IUserApplicationService userApplicationService) : PageModel
     {
         [BindProperty]
         public RegisterViewModel Model { get; set; }
@@ -23,10 +23,9 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
 
         public void OnGet()
         {
-
         }
 
-        public IActionResult OnPost() 
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
         {
             var userModel = new RegisterUserInputDto
             {
@@ -37,11 +36,11 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
                 Username = Model.Username,
             };
 
-            var registerResult = userApplicationService.Register(userModel);
+            var registerResult = await userApplicationService.Register(userModel, cancellationToken);
 
             if (registerResult.IsSuccess)
             {
-               return RedirectToPage("/Account/Login");
+                return RedirectToPage("/Account/Login");
             }
             else
             {
@@ -51,4 +50,5 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
             return Page();
         }
     }
+
 }

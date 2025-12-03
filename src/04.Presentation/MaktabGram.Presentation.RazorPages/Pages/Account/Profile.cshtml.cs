@@ -15,21 +15,22 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
     {
         public GetUserProfileDto Profile { get; set; }
 
-        public void OnGet(int? userId)
+        public async Task OnGetAsync(int? userId, CancellationToken cancellationToken)
         {
-            Profile = userApplicationService.GetProfile((int)userId, GetUserId());
+            Profile = await userApplicationService.GetProfile((int)userId, GetUserId(), cancellationToken);
         }
 
-        public IActionResult OnGetFollow(int id)
+        public async Task<IActionResult> OnGetFollowAsync(int id, CancellationToken cancellationToken)
         {
-            followerApplicationService.Follow(GetUserId(), id);
-            return RedirectToPage("/Account/Profile", new  { userId = id });
+            await followerApplicationService.Follow(GetUserId(), id, cancellationToken);
+            return RedirectToPage("/Account/Profile", new { userId = id });
         }
 
-        public IActionResult OnGetUnFollow(int id)
+        public async Task<IActionResult> OnGetUnFollowAsync(int id, CancellationToken cancellationToken)
         {
-            followerApplicationService.UnFollow(GetUserId(), id);
+            await followerApplicationService.UnFollow(GetUserId(), id, cancellationToken);
             return RedirectToPage("/Account/Profile", new { userId = id });
         }
     }
+
 }

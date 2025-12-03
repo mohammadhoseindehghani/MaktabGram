@@ -1,34 +1,36 @@
-﻿using MaktabGram.Domain.Core.FollowerAgg.Entities;
-using MaktabGram.Domain.Core.FollowerAgg.Contracts;
+﻿using MaktabGram.Domain.Core.FollowerAgg.Contracts;
+using MaktabGram.Domain.Core.FollowerAgg.Entities;
 using MaktabGram.Infrastructure.EfCore.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace MaktabGram.Infrastructure.EfCore.Repositories.FollowerAgg
 {
-    public class FollowerRepository (AppDbContext dbContext) : IFollowerRepository
+    public class FollowerRepository(AppDbContext dbContext) : IFollowerRepository
     {
-        public void Follow(int userId, int FollowedId)
+        public async Task Follow(int userId, int followedId, CancellationToken cancellationToken)
         {
             var entity = new Follower
             {
                 FollowerId = userId,
-                FollowedId = FollowedId,
-                FollowAt = DateTime.Now,
+                FollowedId = followedId,
+                FollowAt = DateTime.Now
             };
 
-            dbContext.Followers.Add(entity);
-            dbContext.SaveChanges();
+            await dbContext.Followers.AddAsync(entity, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public void UnFollow(int userId, int FollowedId)
+        public async Task UnFollow(int userId, int followedId, CancellationToken cancellationToken)
         {
-            var follow = dbContext.Followers
-                .FirstOrDefault(f => f.FollowerId == userId && f.FollowedId == FollowedId);
+            var follow = await dbContext.Followers
+                .FirstOrDefaultAsync(f => f.FollowerId == userId && f.FollowedId == followedId, cancellationToken);
+
             if (follow is not null)
             {
                 dbContext.Followers.Remove(follow);
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
         }
-
     }
+
 }

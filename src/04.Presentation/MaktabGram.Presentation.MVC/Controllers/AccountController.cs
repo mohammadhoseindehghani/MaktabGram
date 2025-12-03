@@ -9,12 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaktabGram.Presentation.MVC.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController(
+        IUserApplicationService userApplicationService,
+        IFollowerApplicationService followApplicationService)
+        : Controller
     {
-        private readonly IUserApplicationService userApplicationService;
-        private readonly IFollowerApplicationService followApplicationService;
-
-
         [HttpGet]
         public IActionResult Login()
         {
@@ -22,31 +21,26 @@ namespace MaktabGram.Presentation.MVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, CancellationToken cancellationToken)
         {
-            var loginResullt = userApplicationService.Login(model.Mobile, model.Password);
+            var loginResult = await userApplicationService.Login(model.Mobile, model.Password, cancellationToken);
 
-            if (loginResullt.IsSuccess)
+            if (loginResult.IsSuccess)
             {
-
                 InMemoryDatabase.OnlineUser = new OnlineUser
                 {
-                    Id = loginResullt.Data.Id,
-                    IsAdmin = loginResullt.Data.IsAdmin,
-                    Username = loginResullt.Data.Username
+                    Id = loginResult.Data.Id,
+                    IsAdmin = loginResult.Data.IsAdmin,
+                    Username = loginResult.Data.Username
                 };
 
-                if (loginResullt.Data!.IsAdmin)
-                {
-                    return RedirectToAction("Index", "Admin");
-                }
-                {
-                    return RedirectToAction("Index", "Post");
-                }
+                return loginResult.Data.IsAdmin
+                    ? RedirectToAction("Index", "Admin")
+                    : RedirectToAction("Index", "Post");
             }
             else
             {
-                ViewBag.Error = loginResullt.Message;
+                ViewBag.Error = loginResult.Message;
             }
 
             return View(model);
@@ -58,9 +52,8 @@ namespace MaktabGram.Presentation.MVC.Controllers
             return View(new RegisterViewModel());
         }
 
-
         [HttpPost]
-        public IActionResult Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
         {
             var userModel = new RegisterUserInputDto
             {
@@ -71,11 +64,12 @@ namespace MaktabGram.Presentation.MVC.Controllers
                 Username = model.Username,
             };
 
-            var registerResult = userApplicationService.Register(userModel);
+            var registerResult = await userApplicationService.Register(userModel, cancellationToken);
 
             if (registerResult.IsSuccess)
             {
-                //.....
+                // Registration succeeded, redirect or show message
+                return RedirectToAction("Login");
             }
             else
             {
@@ -86,53 +80,49 @@ namespace MaktabGram.Presentation.MVC.Controllers
         }
 
         [HttpGet]
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile(CancellationToken cancellationToken)
         {
-            var userId = 3; // InMemoryDatabase.OnlineUser.Id;
-            var profile = userApplicationService.GetProfile(userId,0);
+            var userId = 3; // InMemoryDatabase.OnlineUser.Id
+            var profile = await userApplicationService.GetProfile(userId, 0, cancellationToken);
 
             if (profile is null)
             {
-                //...........
+                return NotFound();
             }
 
             return View(profile);
         }
 
         [HttpGet]
-        public IActionResult Search()
+        public async Task<IActionResult> Search(CancellationToken cancellationToken)
         {
             var userId = 3;
-
-            var results = userApplicationService.Search(string.Empty, userId);
+            var results = await userApplicationService.Search(string.Empty, userId, cancellationToken);
             return View(results);
         }
 
         [HttpPost]
-        public IActionResult Search(string username)
+        public async Task<IActionResult> Search(string username, CancellationToken cancellationToken)
         {
             var userId = 3;
-
-            var results = userApplicationService.Search(username, userId);
+            var results = await userApplicationService.Search(username, userId, cancellationToken);
             return View(results);
         }
 
-
-        public IActionResult Follow(int id)
+        public async Task<IActionResult> Follow(int id, CancellationToken cancellationToken)
         {
             var userId = 3;
-            followApplicationService.Follow(userId, id);
+            await followApplicationService.Follow(userId, id, cancellationToken);
 
             return RedirectToAction("Search");
         }
 
-        public IActionResult UnFollow(int id)
+        public async Task<IActionResult> UnFollow(int id, CancellationToken cancellationToken)
         {
             var userId = 3;
-            followApplicationService.UnFollow(3, id);
+            await followApplicationService.UnFollow(userId, id, cancellationToken);
             return RedirectToAction("Search");
         }
-
-
     }
+
 }

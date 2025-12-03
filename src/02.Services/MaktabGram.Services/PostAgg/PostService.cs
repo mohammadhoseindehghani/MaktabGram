@@ -8,18 +8,16 @@ using MaktabGram.Infrastructure.FileService.Contracts;
 
 namespace MaktabGram.Domain.Services.PostAgg
 {
-    public class PostService(IPostRepository postRepository,
-        IUserRepository userRepository,
-        IFileService fileService) : IPostService
+    public class PostService(IPostRepository postRepository, IUserRepository userRepository, IFileService fileService)
+        : IPostService
     {
-
-        public Result<bool> Create(CreatePostInputDto model)
+        public async Task<Result<bool>> Create(CreatePostInputDto model, CancellationToken cancellationToken)
         {
             try
             {
-                model.ImgUrl = fileService.Upload(model.Img, "Posts");
-                model.TaggedUsers = SetUserTags(model.Tags);
-                var postId = postRepository.Create(model);
+                model.ImgUrl = await fileService.Upload(model.Img, "Posts", cancellationToken);
+                model.TaggedUsers = await SetUserTags(model.Tags, cancellationToken);
+                var postId = await postRepository.Create(model, cancellationToken);
                 return Result<bool>.Success("پست با موفقیت ذخیره شد.");
             }
             catch (Exception ex)
@@ -28,41 +26,41 @@ namespace MaktabGram.Domain.Services.PostAgg
             }
         }
 
-        public List<GetPostForFeedsDto> GetFeedPosts(int userId, int page, int pageSize)
+        public async Task<List<GetPostForFeedsDto>> GetFeedPosts(int userId, int page, int pageSize, CancellationToken cancellationToken)
         {
-            return postRepository.GetFeedPosts(userId,page,pageSize);
+            return await postRepository.GetFeedPosts(userId, page, pageSize, cancellationToken);
         }
 
-        public int GetPostCount(int userId)
+        public async Task<int> GetPostCount(int userId, CancellationToken cancellationToken)
         {
-            return postRepository.GetPostCount(userId);
+            return await postRepository.GetPostCount(userId, cancellationToken);
         }
 
-        public void Like(int userId, int PostId)
+        public async Task Like(int userId, int postId, CancellationToken cancellationToken)
         {
-            postRepository.Like(userId, PostId);
+            await postRepository.Like(userId, postId, cancellationToken);
         }
 
-        public bool UserLikePost(int userId, int PostId)
+        public async Task<bool> UserLikePost(int userId, int postId, CancellationToken cancellationToken)
         {
-            return postRepository.UserLikePost(userId,PostId);
+            return await postRepository.UserLikePost(userId, postId, cancellationToken);
         }
 
-        public List<int> SetUserTags(string postTags)
+        public async Task<List<int>> SetUserTags(string postTags, CancellationToken cancellationToken)
         {
-            var tags = postTags.Split('#').ToList();
-            var userNames = tags.Select(x => x.Trim()).ToList();
-            return userRepository.GetUserIdsBy(userNames);
+            var tags = postTags.Split('#').Select(x => x.Trim()).ToList();
+            return await userRepository.GetUserIdsBy(tags, cancellationToken);
         }
 
-        public void DisLike(int userId, int PostId)
+        public async Task DisLike(int userId, int postId, CancellationToken cancellationToken)
         {
-             postRepository.DisLike(userId, PostId);
+            await postRepository.DisLike(userId, postId, cancellationToken);
         }
 
-        public GetPostDetailsDto? GetPostDetails(int postId)
+        public async Task<GetPostDetailsDto?> GetPostDetails(int postId, CancellationToken cancellationToken)
         {
-            return postRepository.GetPostDetails(postId);
+            return await postRepository.GetPostDetails(postId, cancellationToken);
         }
     }
+
 }

@@ -17,29 +17,28 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Posts
         public int PageSize { get; set; }
         public int TotalPage { get; set; }
 
-
-        public void OnGet(int nextPage, int id = 1)
+        public async Task OnGetAsync(int nextPage, int id = 1, CancellationToken cancellationToken = default)
         {
-            Page = nextPage != 0 ? nextPage :  id;
+            Page = nextPage != 0 ? nextPage : id;
             PageSize = 2;
 
-            Feeds = postApplicationService.GetFeedPosts(GetUserId(), Page, PageSize);
-            PostCount = postApplicationService.GetPostCount(GetUserId());
+            Feeds = await postApplicationService.GetFeedPosts(GetUserId(), Page, PageSize, cancellationToken);
+            PostCount = await postApplicationService.GetPostCount(GetUserId(), cancellationToken);
 
-            TotalPage = PostCount / PageSize;
-
+            TotalPage = (int)Math.Ceiling((double)PostCount / PageSize);
         }
 
-        public IActionResult OnGetLike(int id)
+        public async Task<IActionResult> OnGetLikeAsync(int id, CancellationToken cancellationToken = default)
         {
-            postApplicationService.Like(GetUserId(), id);
+            await postApplicationService.Like(GetUserId(), id, cancellationToken);
             return RedirectToPage("/Posts/Feeds");
         }
 
-        public IActionResult OnGetDisLike(int id)
+        public async Task<IActionResult> OnGetDisLikeAsync(int id, CancellationToken cancellationToken = default)
         {
-            postApplicationService.DisLike(GetUserId(), id);
+            await postApplicationService.DisLike(GetUserId(), id, cancellationToken);
             return RedirectToPage("/Posts/Feeds");
         }
     }
+
 }

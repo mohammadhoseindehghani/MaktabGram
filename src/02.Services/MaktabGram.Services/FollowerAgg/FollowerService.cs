@@ -3,17 +3,17 @@ using MaktabGram.Infrastructure.EfCore.Repositories.FollowerAgg;
 
 namespace MaktabGram.Domain.Services.FollowerAgg
 {
-    public class FollowerService (IFollowerRepository followerRepository) : IFollowerService
+    public class FollowerService(IFollowerRepository followerRepository) : IFollowerService
     {
-
-        public void Follow(int userId, int FollowedId)
+        public async Task Follow(int userId, int followedId, CancellationToken cancellationToken)
         {
-            followerRepository.Follow(userId, FollowedId);
+            await followerRepository.Follow(userId, followedId, cancellationToken);
         }
 
-        public void UnFollow(int userId, int FollowedId)
+        public async Task UnFollow(int userId, int followedId, CancellationToken cancellationToken)
         {
-            followerRepository.UnFollow(userId, FollowedId);
+            await followerRepository.UnFollow(userId, followedId, cancellationToken);
         }
     }
+
 }

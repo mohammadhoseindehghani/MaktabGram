@@ -10,34 +10,33 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace MaktabGram.Presentation.RazorPages.Pages.Account
 {
-    public class SearchModel (IUserApplicationService userApplicationService,
+    public class SearchModel(IUserApplicationService userApplicationService,
         IFollowerApplicationService followerApplicationService) : BasePageModel
     {
         public List<SearchResultDto> SearchResult { get; set; }
 
-        public void OnGet()
+        public async Task OnGetAsync(CancellationToken cancellationToken)
         {
-            SearchResult = userApplicationService.Search(string.Empty, GetUserId());
+            SearchResult = await userApplicationService.Search(string.Empty, GetUserId(), cancellationToken);
         }
-
 
         [HttpPost]
-        public void OnPost(string username)
+        public async Task OnPostAsync(string username, CancellationToken cancellationToken)
         {
-            SearchResult = userApplicationService.Search(username, GetUserId());
+            SearchResult = await userApplicationService.Search(username, GetUserId(), cancellationToken);
         }
 
-
-        public IActionResult OnGetFollow(int id)
+        public async Task<IActionResult> OnGetFollowAsync(int id, CancellationToken cancellationToken)
         {
-            followerApplicationService.Follow(GetUserId(), id);
+            await followerApplicationService.Follow(GetUserId(), id, cancellationToken);
             return RedirectToPage("/Account/Search");
         }
 
-        public IActionResult OnGetUnFollow(int id)
+        public async Task<IActionResult> OnGetUnFollowAsync(int id, CancellationToken cancellationToken)
         {
-            followerApplicationService.UnFollow(GetUserId(), id);
+            await followerApplicationService.UnFollow(GetUserId(), id, cancellationToken);
             return RedirectToPage("/Account/Search");
         }
     }
+
 }

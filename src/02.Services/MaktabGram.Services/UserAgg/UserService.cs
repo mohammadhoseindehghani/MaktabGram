@@ -6,28 +6,39 @@ using MaktabGram.Infrastructure.FileService.Contracts;
 
 namespace MaktabGram.Domain.Services.UserAgg
 {
-    public class UserService (IUserRepository userRepository , IFileService fileService) : IUserService
+    public class UserService(IUserRepository userRepository, IFileService fileService) : IUserService
     {
-        public List<GetUserSummaryDto> GetUsersSummary()
+        public async Task<List<GetUserSummaryDto>> GetUsersSummary(CancellationToken cancellationToken)
         {
-            var users = userRepository.GetUsersSummary();
+            var users = await userRepository.GetUsersSummary(cancellationToken);
 
             users.ForEach(user =>
                 user.CreateAtFa = user.CreateAt.ToPersianString("yyyy/MM/dd"));
 
             return users;
         }
-        public void Active(int userId) => userRepository.Active(userId);
-        public void DeActive(int userId) => userRepository.DeActive(userId);
-        public UserLoginOutputDto? Login(string mobile, string password) => userRepository.Login(mobile, password);
-        public UpdateGetUserDto GetUpdateUserDetails(int userId) => userRepository.GetUpdateUserDetails(userId);
-        public Result<bool> Update(int userId, UpdateGetUserDto model)
+
+        public async Task Active(int userId, CancellationToken cancellationToken)
+            => await userRepository.Active(userId, cancellationToken);
+
+        public async Task DeActive(int userId, CancellationToken cancellationToken)
+            => await userRepository.DeActive(userId, cancellationToken);
+
+        public async Task<UserLoginOutputDto?> Login(string mobile, string password, CancellationToken cancellationToken)
+        {
+            return await userRepository.Login(mobile, password, cancellationToken);
+        }
+
+        public async Task<UpdateGetUserDto> GetUpdateUserDetails(int userId, CancellationToken cancellationToken)
+            => await userRepository.GetUpdateUserDetails(userId, cancellationToken);
+
+        public async Task<Result<bool>> Update(int userId, UpdateGetUserDto model, CancellationToken cancellationToken)
         {
             if (model.ImgProfile is not null)
             {
-                var existingImageUrl = userRepository.GetImageProfileUrl(userId);
-                fileService.Delete(existingImageUrl);
-                model.ImageProfileUrl = fileService.Upload(model.ImgProfile!, "Profiles");
+                var existingImageUrl = await userRepository.GetImageProfileUrl(userId, cancellationToken);
+                await fileService.Delete(existingImageUrl, cancellationToken);
+                model.ImageProfileUrl = await fileService.Upload(model.ImgProfile!, "Profiles", cancellationToken);
             }
 
             if (model.Password is not null)
@@ -35,58 +46,57 @@ namespace MaktabGram.Domain.Services.UserAgg
                 model.Password = model.Password.ToMd5Hex();
             }
 
-            var result = userRepository.Update(userId, model);
+            var result = await userRepository.Update(userId, model, cancellationToken);
 
-            if (result)
-            {
-                return Result<bool>.Success("اطلاعات کاربر با موفقیت به‌روزرسانی شد.");
-            }
-            else
-            {
-                return Result<bool>.Failure("به‌روزرسانی اطلاعات کاربر با خطا مواجه شد.");
-            }
+            return result
+                ? Result<bool>.Success("اطلاعات کاربر با موفقیت به‌روزرسانی شد.")
+                : Result<bool>.Failure("به‌روزرسانی اطلاعات کاربر با خطا مواجه شد.");
         }
-        public bool IsActive(string mobile) => userRepository.IsActive(mobile);
-        public bool MobileExists(string mobile) => userRepository.MobileExists(mobile);
-        public string GetImageProfileUrl(int userId) => userRepository.GetImageProfileUrl(userId);
-        public List<int> GetUserIdsBy(List<string> userNames) => userRepository.GetUserIdsBy(userNames);
-        public Result<bool> Register(RegisterUserInputDto model) 
-        {
-            var mobileExist = MobileExists(model.Mobile);
 
+        public async Task<bool> IsActive(string mobile, CancellationToken cancellationToken)
+            => await userRepository.IsActive(mobile, cancellationToken);
+
+        public async Task<bool> MobileExists(string mobile, CancellationToken cancellationToken)
+            => await userRepository.MobileExists(mobile, cancellationToken);
+
+        public async Task<string> GetImageProfileUrl(int userId, CancellationToken cancellationToken)
+            => await userRepository.GetImageProfileUrl(userId, cancellationToken);
+
+        public async Task<List<int>> GetUserIdsBy(List<string> userNames, CancellationToken cancellationToken)
+            => await userRepository.GetUserIdsBy(userNames, cancellationToken);
+
+        public async Task<Result<bool>> Register(RegisterUserInputDto model, CancellationToken cancellationToken)
+        {
+            var mobileExist = await MobileExists(model.Mobile, cancellationToken);
             if (mobileExist)
-            {
                 return Result<bool>.Failure("کاربر با این شماره موجود می باشد.");
-            }
 
             if (model.ProfileImg is not null)
             {
-                model.ProfileImageUrl = fileService.Upload(model.ProfileImg, "Profiles");
+                model.ProfileImageUrl = await fileService.Upload(model.ProfileImg, "Profiles", cancellationToken);
             }
 
             model.Password = model.Password.ToMd5Hex();
 
-            userRepository.Register(model);
+            await userRepository.Register(model, cancellationToken);
 
             return Result<bool>.Success("ثبت نام با موفقیت انجام شد.");
         }
 
-        public GetUserProfileDto GetProfile(int searchedUserId, int curentUserId)
+        public async Task<GetUserProfileDto> GetProfile(int searchedUserId, int curentUserId, CancellationToken cancellationToken)
         {
-            if(userRepository.IsFolllow(searchedUserId, curentUserId))
+            if (await userRepository.IsFolllow(searchedUserId, curentUserId, cancellationToken))
             {
-                var user = userRepository.GetProfileWithPosts(searchedUserId, curentUserId);
+                var user = await userRepository.GetProfileWithPosts(searchedUserId, curentUserId, cancellationToken);
                 user.IsFollower = true;
                 return user;
             }
 
-            return userRepository.GetProfile(searchedUserId);
+            return await userRepository.GetProfile(searchedUserId, cancellationToken);
         }
 
-        public List<SearchResultDto> Search(string username,int userId)
-        {
-            return userRepository.Search(username,userId);
-        }
-
+        public async Task<List<SearchResultDto>> Search(string username, int userId, CancellationToken cancellationToken)
+            => await userRepository.Search(username, userId, cancellationToken);
     }
+
 }

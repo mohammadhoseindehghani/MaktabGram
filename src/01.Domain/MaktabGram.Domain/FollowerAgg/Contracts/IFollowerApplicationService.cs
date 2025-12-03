@@ -8,7 +8,8 @@ namespace MaktabGram.Domain.Core.FollowerAgg.Contracts
 {
     public interface IFollowerApplicationService
     {
-        public void Follow(int userId, int FollowedId);
-        public void UnFollow(int userId, int FollowedId);
+        Task Follow(int userId, int followedId, CancellationToken cancellationToken);
+        Task UnFollow(int userId, int followedId, CancellationToken cancellationToken);
     }
+
 }

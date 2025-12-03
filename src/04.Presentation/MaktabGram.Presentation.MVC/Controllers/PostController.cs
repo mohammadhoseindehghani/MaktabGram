@@ -9,23 +9,20 @@ using System.Security.Principal;
 
 namespace MaktabGram.Presentation.MVC.Controllers
 {
-    public class PostController : Controller
+    public class PostController(IPostApplicationService postApplicationService) : Controller
     {
-        private readonly IPostApplicationService postApplicationService;
-
-
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var userId = Database.InMemoryDatabase.OnlineUser.Id;
 
-            var posts = postApplicationService.GetFeedPosts(userId,0,0);
+            var posts = await postApplicationService.GetFeedPosts(userId, 0, 0, cancellationToken);
             return View(posts);
         }
 
         [HttpGet]
         public IActionResult Create(CreatePostInputDto? model)
         {
-            return View( model);
+            return View(model);
         }
 
         [HttpGet]
@@ -35,22 +32,22 @@ namespace MaktabGram.Presentation.MVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreatePost(CreatePostInputDto model)
+        public async Task<IActionResult> CreatePost(CreatePostInputDto model, CancellationToken cancellationToken)
         {
             model.UserId = InMemoryDatabase.OnlineUser.Id;
 
-            var result = postApplicationService.Create(model);
+            var result = await postApplicationService.Create(model, cancellationToken);
 
-            if(result.IsSuccess)
+            if (result.IsSuccess)
             {
-                return RedirectToAction("Index", model);
+                return RedirectToAction("Index");
             }
             else
             {
                 ViewBag.Error = result.Message;
-                return RedirectToAction("Create", model);
+                return View("Create", model);
             }
-               
         }
     }
+
 }

@@ -5,18 +5,19 @@ namespace MaktabGram.Domain.Core.UserAgg.Contracts
 {
     public interface IUserService
     {
-        public UserLoginOutputDto? Login(string mobile, string password);
-        public Result<bool> Register(RegisterUserInputDto model);
-        public bool IsActive(string mobile);
-        public bool MobileExists(string mobile);
-        public List<GetUserSummaryDto> GetUsersSummary();
-        public UpdateGetUserDto GetUpdateUserDetails(int userId);
-        public void Active(int userId);
-        public void DeActive(int userId);
-        public Result<bool> Update(int userId, UpdateGetUserDto model);
-        public string GetImageProfileUrl(int userId);
-        public List<int> GetUserIdsBy(List<string> userNames);
-        public GetUserProfileDto GetProfile(int searchedUserId, int curentUserId);
-        public List<SearchResultDto> Search(string username, int userId);
+        Task<UserLoginOutputDto?> Login(string mobile, string password, CancellationToken cancellationToken);
+        Task<Result<bool>> Register(RegisterUserInputDto model, CancellationToken cancellationToken);
+        Task<bool> IsActive(string mobile, CancellationToken cancellationToken);
+        Task<bool> MobileExists(string mobile, CancellationToken cancellationToken);
+        Task<List<GetUserSummaryDto>> GetUsersSummary(CancellationToken cancellationToken);
+        Task<UpdateGetUserDto> GetUpdateUserDetails(int userId, CancellationToken cancellationToken);
+        Task Active(int userId, CancellationToken cancellationToken);
+        Task DeActive(int userId, CancellationToken cancellationToken);
+        Task<Result<bool>> Update(int userId, UpdateGetUserDto model, CancellationToken cancellationToken);
+        Task<string> GetImageProfileUrl(int userId, CancellationToken cancellationToken);
+        Task<List<int>> GetUserIdsBy(List<string> userNames, CancellationToken cancellationToken);
+        Task<GetUserProfileDto> GetProfile(int searchedUserId, int curentUserId, CancellationToken cancellationToken);
+        Task<List<SearchResultDto>> Search(string username, int userId, CancellationToken cancellationToken);
     }
+
 }

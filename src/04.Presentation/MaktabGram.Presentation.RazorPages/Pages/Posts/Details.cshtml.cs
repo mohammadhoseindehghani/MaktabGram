@@ -5,13 +5,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace MaktabGram.Presentation.RazorPages.Pages.Posts
 {
-    public class DetailsModel (IPostApplicationService postApplicationService) : PageModel
+    public class DetailsModel(IPostApplicationService postApplicationService) : PageModel
     {
         public GetPostDetailsDto Post { get; set; }
 
-        public void OnGet(int id)
+        public async Task OnGetAsync(int id, CancellationToken cancellationToken)
         {
-            Post = postApplicationService.GetPostDetails(id);
+            Post = await postApplicationService.GetPostDetails(id, cancellationToken);
         }
     }
+
 }

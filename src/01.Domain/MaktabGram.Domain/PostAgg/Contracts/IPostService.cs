@@ -6,13 +6,14 @@ namespace MaktabGram.Domain.Core.PostAgg.Contracts
 {
     public interface IPostService
     {
-        Result<bool> Create(CreatePostInputDto model);
-        public List<GetPostForFeedsDto> GetFeedPosts(int userId, int page, int pageSize);
-        public List<int> SetUserTags(string postTags);
-        public int GetPostCount(int userId);
-        public void Like(int userId, int PostId);
-        public bool UserLikePost(int userId, int PostId);
-        public void DisLike(int userId, int PostId);
-        public GetPostDetailsDto? GetPostDetails(int postId);
+        Task<Result<bool>> Create(CreatePostInputDto model, CancellationToken cancellationToken);
+        Task<List<GetPostForFeedsDto>> GetFeedPosts(int userId, int page, int pageSize, CancellationToken cancellationToken);
+        Task<List<int>> SetUserTags(string postTags, CancellationToken cancellationToken);
+        Task<int> GetPostCount(int userId, CancellationToken cancellationToken);
+        Task Like(int userId, int postId, CancellationToken cancellationToken);
+        Task<bool> UserLikePost(int userId, int postId, CancellationToken cancellationToken);
+        Task DisLike(int userId, int postId, CancellationToken cancellationToken);
+        Task<GetPostDetailsDto?> GetPostDetails(int postId, CancellationToken cancellationToken);
     }
+
 }

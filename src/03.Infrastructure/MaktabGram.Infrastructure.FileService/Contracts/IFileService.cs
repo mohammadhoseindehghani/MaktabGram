@@ -3,7 +3,8 @@ namespace MaktabGram.Infrastructure.FileService.Contracts
 {
     public interface IFileService
     {
-        public string Upload(IFormFile file, string folder);
-        public void Delete(string fileName);
+        Task<string> Upload(IFormFile file, string folder, CancellationToken cancellationToken);
+        Task Delete(string fileName, CancellationToken cancellationToken);
     }
+
 }

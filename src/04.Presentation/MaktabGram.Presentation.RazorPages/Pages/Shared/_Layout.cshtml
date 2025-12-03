@@ -127,7 +127,7 @@
                         @if (cookieService.UserIsLoggedIn())
                         {
                             <a asp-page="/Account/Profile" asp-route-userId="@cookieService.GetUserId()">
-                                <img src="/@userApplicationService.GetImageProfileUrl(cookieService.GetUserId())"
+                                <img src="/@userApplicationService.GetImageProfileUrl(cookieService.GetUserId(), CancellationToken.None)"
                                      alt="پروفایل" class="w-full h-full object-cover">
                             </a>
 
