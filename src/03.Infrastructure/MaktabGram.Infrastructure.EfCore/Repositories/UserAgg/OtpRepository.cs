@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
 {
-    public class OtpRepository (AppDbContext dbContext) : IOtpRepository
+    public class OtpRepository(AppDbContext dbContext) : IOtpRepository
     {
-        public async Task Create(string mobile, int code, OtpTypeEnum type,CancellationToken cancellationToken)
+        public async Task Create(string mobile, int code, OtpTypeEnum type, CancellationToken cancellationToken)
         {
             var entity = new Otp
             {
@@ -23,13 +23,26 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public Task<bool> Verify(string mobile, int code, OtpTypeEnum otpType,CancellationToken cancellationToken)
+        public async Task SetUsed(string mobile, int code, OtpTypeEnum otpType, CancellationToken cancellationToken)
         {
-            return dbContext.Otps.AnyAsync(o => o.IsUsed == false 
-            && o.Code == code 
-            && o.Mobile == mobile 
-            && o.Type == otpType 
-            && DateTime.Now < o.SendAt.AddMinutes(2), cancellationToken);
+            await dbContext.Otps
+                .Where(o => o.Code == code
+                    && o.Mobile == mobile
+                    && o.Type == otpType)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.IsUsed, true), cancellationToken);
+        }
+
+
+        public async Task<bool> Verify(string mobile, int code, OtpTypeEnum otpType, CancellationToken cancellationToken)
+        {
+            var record = await dbContext.Otps.FirstOrDefaultAsync(o => o.IsUsed == false
+            && o.Code == code
+            && o.Mobile == mobile
+            && o.Type == otpType);
+
+            if (record is null) return false;
+
+            return record.SendAt.AddMinutes(2) > DateTime.Now;
         }
     }
 }

@@ -6,5 +6,6 @@ namespace MaktabGram.Domain.Core.UserAgg.Contracts.Otp
     {
         public Task Create(string mobile, int code, OtpTypeEnum type, CancellationToken cancellationToken);
         public Task<bool> Verify(string mobile, int code, OtpTypeEnum otpType, CancellationToken cancellationToken);
+        public Task SetUsed(string mobile, int code, OtpTypeEnum otpType, CancellationToken cancellationToken);
     }
 }

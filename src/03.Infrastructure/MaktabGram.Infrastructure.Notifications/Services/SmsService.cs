@@ -23,7 +23,6 @@
 
         }
 
-
         private int GenerateOTP()
         {
             Random rnd = new Random();

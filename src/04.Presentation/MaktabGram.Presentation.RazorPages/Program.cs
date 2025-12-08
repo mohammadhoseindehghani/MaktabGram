@@ -18,11 +18,49 @@ using MaktabGram.Infrastructure.FileService.Contracts;
 using MaktabGram.Infrastructure.FileService.Services;
 using MaktabGram.Infrastructure.Notifications.Services;
 using MaktabGram.Presentation.RazorPages.Extentions;
+using MaktabGram.Presentation.RazorPages.Middlewares;
 using MaktabGram.Presentation.RazorPages.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Serilog;
+using Serilog.Events;
+using Serilog.Filters;
+using Serilog.Sinks.MSSqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+
+    // Info → Seq
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Information)
+        .WriteTo.Seq("http://localhost:5341"))
+
+    // Error → File
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Error)
+        .WriteTo.File(@"C:\ApplicationLog\log-.txt", rollingInterval: RollingInterval.Day))
+
+// Warning → SQL Server
+.WriteTo.Logger(lc => lc
+    .Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Warning)
+    .WriteTo.MSSqlServer(
+        connectionString: builder.Configuration.GetValue<string>("ConnectionStrings:LogConnectionString"),
+        sinkOptions: new MSSqlServerSinkOptions
+        {
+            TableName = "Logs",
+            AutoCreateSqlTable = true,
+            BatchPostingLimit = 100,
+            BatchPeriod = TimeSpan.FromSeconds(2)
+        },
+        columnOptions: null
+    ))
+
+    .CreateBootstrapLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
@@ -34,13 +72,14 @@ builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage("Server=localhost;Database=HangfireTest;user id=sa;password=25915491;trust server certificate=true;"));
+    .UseSqlServerStorage(builder.Configuration.GetValue<string>("ConnectionStrings:HangfireConnectionString")));
 
 // Add the processing server as IHostedService
 builder.Services.AddHangfireServer();
 
 
 #region RegisterServices
+
 
 builder.Services.AddScoped<ICookieService, CookieService>();
 
@@ -67,12 +106,12 @@ builder.Services.AddScoped<IFollowerApplicationService, FollowerApplicationServi
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //    options.UseSqlServer("Server=localhost;Database=MaktabGramDb;user id=sa;password=25915491;trust server certificate=true"));
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer("Server=localhost;Database=MaktabGramDb;user id=sa;password=25915491;trust server certificate=true"));
+    options.UseSqlServer(builder.Configuration.GetValue<string>("ConnectionStrings:AppConnectionString")));
 
 #endregion
 
 
-
+builder.Host.UseSerilog();
 
 var app = builder.Build();
 
@@ -115,5 +154,6 @@ x => x.Check(),
 TimeSpan.FromSeconds(120));
 
 app.UseHangfireDashboard("/hangfire");
+app.UseMiddleware<LoggingMiddleware>();
 
 app.Run();

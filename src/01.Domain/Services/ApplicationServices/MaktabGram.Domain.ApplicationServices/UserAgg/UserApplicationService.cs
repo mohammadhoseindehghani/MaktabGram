@@ -70,6 +70,9 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
             if (result.IsSuccess)
             {
                 await smsService.Send(model.Mobile, "به سایت مکتب گرام خوش آمدید");
+
+                await otpService.SetUsed(model.Mobile, model.Otp, Core.UserAgg.Enum.OtpTypeEnum.Register, cancellationToken);
+
                 return result;
             }
             return result;

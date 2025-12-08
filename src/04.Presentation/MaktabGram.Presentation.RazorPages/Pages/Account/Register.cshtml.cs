@@ -4,6 +4,7 @@ using MaktabGram.Domain.Core.UserAgg.Dtos;
 using MaktabGram.Presentation.RazorPages.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Serilog;
 
 namespace MaktabGram.Presentation.RazorPages.Pages.Account
 {
@@ -17,7 +18,7 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
         public string Password { get; set; }
         public int Otp { get; set; }
     }
-    public class RegisterModel(IUserApplicationService userApplicationService) : PageModel
+    public class RegisterModel(IUserApplicationService userApplicationService,ILogger<RegisterModel> logger) : PageModel
     {
         [BindProperty]
         public RegisterViewModel Model { get; set; }
@@ -26,6 +27,8 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
 
         public void OnGet()
         {
+
+            throw new Exception("exception from RegisterModel");
         }
 
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
