@@ -10,6 +10,7 @@ using MaktabGram.Domain.Core.UserAgg.Contracts.User;
 using MaktabGram.Domain.Services.FollowerAgg;
 using MaktabGram.Domain.Services.PostAgg;
 using MaktabGram.Domain.Services.UserAgg;
+using MaktabGram.Framework;
 using MaktabGram.Infrastructure.EfCore.Persistence;
 using MaktabGram.Infrastructure.EfCore.Repositories.FollowerAgg;
 using MaktabGram.Infrastructure.EfCore.Repositories.PostAgg;
@@ -20,6 +21,7 @@ using MaktabGram.Infrastructure.Notifications.Services;
 using MaktabGram.Presentation.RazorPages.Extentions;
 using MaktabGram.Presentation.RazorPages.Middlewares;
 using MaktabGram.Presentation.RazorPages.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -29,6 +31,8 @@ using Serilog.Sinks.MSSqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+#region Log
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -61,6 +65,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateBootstrapLogger();
 
 builder.Host.UseSerilog();
+#endregion
 
 // Add services to the container.
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
@@ -108,6 +113,23 @@ builder.Services.AddScoped<IFollowerApplicationService, FollowerApplicationServi
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetValue<string>("ConnectionStrings:AppConnectionString")));
 
+
+builder.Services.AddIdentity<IdentityUser<int>, IdentityRole<int>>(
+    options =>
+    {
+        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(60);
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 4;
+        options.Password.RequireNonAlphanumeric = false;
+    })
+    .AddErrorDescriber<PersianIdentityErrorDescriber>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
 #endregion
 
 
@@ -131,6 +153,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();

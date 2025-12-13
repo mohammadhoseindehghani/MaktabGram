@@ -79,6 +79,7 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
                 Username = model.Username,
                 PasswordHash = model.Password,
                 CreatedAt = DateTime.Now,
+                IdentityUserId = model.IdentityUserId,
                 Profile = new UserProfile
                 {
                     FirstName = model.FirstName,

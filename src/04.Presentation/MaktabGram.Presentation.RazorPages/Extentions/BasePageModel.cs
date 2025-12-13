@@ -6,13 +6,14 @@ namespace MaktabGram.Presentation.RazorPages.Extentions
     {
         public int GetUserId()
         {
-            if (Request.Cookies.TryGetValue("Id", out var userIdStr) &&
-                int.TryParse(userIdStr, out var userIdFromCookie))
-            {
-                return userIdFromCookie;
-            }
+            return 3;
+            //if (Request.Cookies.TryGetValue("Id", out var userIdStr) &&
+            //    int.TryParse(userIdStr, out var userIdFromCookie))
+            //{
+            //    return userIdFromCookie;
+            //}
 
-           throw new Exception("User is not logged in.");
+           //throw new Exception("User is not logged in.");
         }
 
         public bool IsAdmin()

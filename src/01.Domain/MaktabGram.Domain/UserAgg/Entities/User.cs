@@ -3,6 +3,7 @@ using MaktabGram.Domain.Core.CommentAgg.Entities;
 using MaktabGram.Domain.Core.FollowerAgg.Entities;
 using MaktabGram.Domain.Core.PostAgg.Entities;
 using MaktabGram.Domain.Core.UserAgg.ValueObjects;
+using Microsoft.AspNetCore.Identity;
 
 namespace MaktabGram.Domain.Core.UserAgg.Entities;
 public class User : BaseEntity
@@ -16,6 +17,10 @@ public class User : BaseEntity
     #endregion
 
     #region properties
+
+    public int IdentityUserId { get; set; }
+    public IdentityUser<int> IdentityUser { get; set; }
+
     public string? Username { get; set; }
     public string PasswordHash { get; set; }
     public Mobile Mobile { get; set; }

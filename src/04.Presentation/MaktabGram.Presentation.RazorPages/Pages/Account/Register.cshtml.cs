@@ -28,7 +28,7 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
         public void OnGet()
         {
 
-            throw new Exception("exception from RegisterModel");
+            //throw new Exception("exception from RegisterModel");
         }
 
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)

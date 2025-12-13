@@ -7,6 +7,7 @@ using MaktabGram.Infrastructure.FileService.Contracts;
 using MaktabGram.Infrastructure.Notifications.Services;
 using MaktabGram.Domain.Core.UserAgg.Contracts.User;
 using MaktabGram.Domain.Core.UserAgg.Contracts.Otp;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace MaktabGram.Domain.ApplicationServices.UserAgg
@@ -14,7 +15,10 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
     public class UserApplicationService(IUserService userService,
         IFileService fileService,
         ISmsService smsService,
-        IOtpService otpService 
+        IOtpService otpService,
+        SignInManager<IdentityUser<int>> signInManager,
+        UserManager<IdentityUser<int>> userManager,
+        RoleManager<IdentityRole<int>> roleManager
         ) : IUserApplicationService
     {
         public async Task Active(int userId, CancellationToken cancellationToken)
@@ -39,14 +43,15 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
 
         public async Task<Result<UserLoginOutputDto>> Login(string mobile, string password, CancellationToken cancellationToken)
         {
-            var login = await userService.Login(mobile, password.ToMd5Hex(), cancellationToken);
 
-            if (login is not null)
+            var login = await signInManager.PasswordSignInAsync(mobile, password, false, false);
+
+            if (login.Succeeded)
             {
                 var isActive = await userService.IsActive(mobile, cancellationToken);
 
                 return isActive
-                    ? Result<UserLoginOutputDto>.Success("لاگین با موفقیت انجام شد.", login)
+                    ? Result<UserLoginOutputDto>.Success("لاگین با موفقیت انجام شد.", new UserLoginOutputDto())
                     : Result<UserLoginOutputDto>.Failure("کاربر با این شماره فعال نمی‌باشد.");
             }
             else
@@ -57,25 +62,40 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
 
         public async Task<Result<bool>> Register(RegisterUserInputDto model, CancellationToken cancellationToken)
         {
+            //var otpIsValid = await otpService.Verify(model.Mobile, model.Otp, Core.UserAgg.Enum.OtpTypeEnum.Register, cancellationToken);
 
-            var otpIsValid = await otpService.Verify(model.Mobile, model.Otp, Core.UserAgg.Enum.OtpTypeEnum.Register, cancellationToken);
+            //if(!otpIsValid)
+            //{
+            //    return new Result<bool> { Data = false , Message = "کد یکبار مصرف صحیح نمی باشد" };
+            //}
 
-            if(!otpIsValid)
+            //var result = await userService.Register(model, cancellationToken);
+
+            var user = new IdentityUser<int>
             {
-                return new Result<bool> { Data = false , Message = "کد یکبار مصرف صحیح نمی باشد" };
+                UserName = model.Mobile,
+                PhoneNumber = model.Mobile,
+                Email = model.Email,
+            };
+
+            var result = await userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+
+                //await smsService.Send(model.Mobile, "به سایت مکتب گرام خوش آمدید");
+                //await otpService.SetUsed(model.Mobile, model.Otp, Core.UserAgg.Enum.OtpTypeEnum.Register, cancellationToken);
+
+                await userManager.AddToRoleAsync(user, "User");
+
+                model.IdentityUserId = user.Id;
+                await userService.Register(model, cancellationToken);
+
+
+                return new Result<bool> { Message = "ورود موفق"};
             }
 
-            var result = await userService.Register(model, cancellationToken);
-
-            if (result.IsSuccess)
-            {
-                await smsService.Send(model.Mobile, "به سایت مکتب گرام خوش آمدید");
-
-                await otpService.SetUsed(model.Mobile, model.Otp, Core.UserAgg.Enum.OtpTypeEnum.Register, cancellationToken);
-
-                return result;
-            }
-            return result;
+            return new Result<bool> { Message = result.Errors.First().Description};
         }
 
         public async Task<Result<bool>> Update(int userId, UpdateGetUserDto model, CancellationToken cancellationToken)

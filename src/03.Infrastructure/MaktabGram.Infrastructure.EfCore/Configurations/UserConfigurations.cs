@@ -12,6 +12,11 @@ namespace MaktabGram.Infrastructure.EfCore.Configurations
         {
             builder.ToTable("Users").HasKey(p => p.Id);
 
+            builder.HasOne(u => u.IdentityUser)
+                .WithOne()
+                .HasForeignKey<User>(u => u.IdentityUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             builder.Property(p => p.Username)
                 .HasMaxLength(100)
                 .IsRequired(true);

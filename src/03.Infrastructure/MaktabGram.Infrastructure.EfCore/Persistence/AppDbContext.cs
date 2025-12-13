@@ -2,11 +2,13 @@
 using MaktabGram.Domain.Core.FollowerAgg.Entities;
 using MaktabGram.Domain.Core.PostAgg.Entities;
 using MaktabGram.Domain.Core.UserAgg.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace MaktabGram.Infrastructure.EfCore.Persistence
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<IdentityUser<int>,IdentityRole<int>,int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {

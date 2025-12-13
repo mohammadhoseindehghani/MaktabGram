@@ -15,7 +15,7 @@ namespace MaktabGram.Domain.Core.UserAgg.Dtos
         public RoleEnum? Role { get; set; }
         public IFormFile? ProfileImg { get; set; }
         public int Otp { get; set; }
-
+        public int IdentityUserId { get; set; }
     }
 
 }
