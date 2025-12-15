@@ -297,6 +297,19 @@ namespace MaktabGram.Infrastructure.EfCore.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 12, 15, 23, 3, 49, 262, DateTimeKind.Local).AddTicks(4623),
+                            IdentityUserId = 1,
+                            IsActive = true,
+                            IsAdmin = true,
+                            PasswordHash = "",
+                            Username = "09377507920",
+                            VerifiedBadge = false
+                        });
                 });
 
             modelBuilder.Entity("MaktabGram.Domain.Core.UserAgg.Entities.UserProfile", b =>
@@ -361,6 +374,22 @@ namespace MaktabGram.Infrastructure.EfCore.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ConcurrencyStamp = "5bef7ff8-32bd-4154-8a7b-420eca19b451",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ConcurrencyStamp = "bb501e89-4770-4e15-9ca2-77827f0eed4f",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -453,6 +482,24 @@ namespace MaktabGram.Infrastructure.EfCore.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "5db3c501-3194-4094-ab3a-3a917ca1ddb9",
+                            Email = "admin@admin.com",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@ADMIN.COM",
+                            NormalizedUserName = "09377507920",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMe+C7OyOM4xZY/InkFTHc/AydpIhEOULgmm6RZqsp7JdH/YFaHtp3Gefj13bnjkTg==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "47f3181f-662e-4c0e-bda1-b309b9ceaeb6",
+                            TwoFactorEnabled = false,
+                            UserName = "0937507920"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -513,6 +560,13 @@ namespace MaktabGram.Infrastructure.EfCore.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            RoleId = 1
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -691,12 +745,18 @@ namespace MaktabGram.Infrastructure.EfCore.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    UserId = 1,
+                                    Value = "09377507920"
+                                });
                         });
 
                     b.Navigation("IdentityUser");
 
-                    b.Navigation("Mobile")
-                        .IsRequired();
+                    b.Navigation("Mobile");
                 });
 
             modelBuilder.Entity("MaktabGram.Domain.Core.UserAgg.Entities.UserProfile", b =>

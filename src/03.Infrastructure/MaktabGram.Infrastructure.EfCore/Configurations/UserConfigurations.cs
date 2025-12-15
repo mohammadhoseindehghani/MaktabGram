@@ -1,4 +1,5 @@
 ﻿using MaktabGram.Domain.Core.UserAgg.Entities;
+using MaktabGram.Domain.Core.UserAgg.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Reflection.Emit;
@@ -78,6 +79,34 @@ namespace MaktabGram.Infrastructure.EfCore.Configurations
                 .WithOne(c => c.TaggedUser)
                 .HasForeignKey(c => c.TaggedUserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+
+            builder.HasData(new User
+            {
+                Id = 1,
+                IdentityUserId = 1,
+                Username = "09377507920",
+                IsActive = true,
+                IsAdmin = true,
+                PasswordHash = string.Empty,
+                CreatedAt = DateTime.Now
+            // Do NOT set Mobile here!
+            });
+
+            builder.OwnsOne(u => u.Mobile, mobile =>
+            {
+                mobile.Property(m => m.Value)
+                    .HasColumnName("Mobile")
+                    .HasMaxLength(11)
+                    .IsRequired(true);
+
+                // Seed the owned type here
+                mobile.HasData(new
+                {
+                    UserId = 1, // Must match the User.Id above
+                    Value = "09377507920"
+                });
+            });
         }
     }
 }

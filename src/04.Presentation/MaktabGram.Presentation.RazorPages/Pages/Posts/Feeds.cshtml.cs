@@ -22,21 +22,21 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Posts
             Page = nextPage != 0 ? nextPage : id;
             PageSize = 2;
 
-            Feeds = await postApplicationService.GetFeedPosts(GetUserId(), Page, PageSize, cancellationToken);
-            PostCount = await postApplicationService.GetPostCount(GetUserId(), cancellationToken);
+            Feeds = await postApplicationService.GetFeedPosts((int)GetUserId()!, Page, PageSize, cancellationToken);
+            PostCount = await postApplicationService.GetPostCount((int)GetUserId()!, cancellationToken);
 
             TotalPage = (int)Math.Ceiling((double)PostCount / PageSize);
         }
 
         public async Task<IActionResult> OnGetLikeAsync(int id, CancellationToken cancellationToken = default)
         {
-            await postApplicationService.Like(GetUserId(), id, cancellationToken);
+            await postApplicationService.Like((int)GetUserId()!, id, cancellationToken);
             return RedirectToPage("/Posts/Feeds");
         }
 
         public async Task<IActionResult> OnGetDisLikeAsync(int id, CancellationToken cancellationToken = default)
         {
-            await postApplicationService.DisLike(GetUserId(), id, cancellationToken);
+            await postApplicationService.DisLike((int)GetUserId()!, id, cancellationToken);
             return RedirectToPage("/Posts/Feeds");
         }
     }

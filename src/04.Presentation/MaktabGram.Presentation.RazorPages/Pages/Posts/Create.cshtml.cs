@@ -20,7 +20,7 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Posts
 
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
         {
-            Model.UserId = GetUserId();
+            Model.UserId = (int)GetUserId()!;
             var result = await postApplicationService.Create(Model, cancellationToken);
 
             if (result.IsSuccess)

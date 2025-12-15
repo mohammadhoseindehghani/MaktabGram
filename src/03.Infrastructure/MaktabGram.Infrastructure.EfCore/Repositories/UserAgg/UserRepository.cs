@@ -4,6 +4,7 @@ using MaktabGram.Domain.Core.UserAgg.Dtos;
 using MaktabGram.Domain.Core.UserAgg.Entities;
 using MaktabGram.Domain.Core.UserAgg.ValueObjects;
 using MaktabGram.Infrastructure.EfCore.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
@@ -242,6 +243,7 @@ namespace MaktabGram.Infrastructure.EfCore.Repositories.UserAgg
             return await dbContext.Followers
                 .AnyAsync(f => f.FollowerId == curentUserId && f.FollowedId == searchedUserId, cancellationToken);
         }
+
     }
 
 }

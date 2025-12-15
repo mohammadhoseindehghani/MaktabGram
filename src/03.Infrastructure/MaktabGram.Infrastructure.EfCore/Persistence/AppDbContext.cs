@@ -2,6 +2,7 @@
 using MaktabGram.Domain.Core.FollowerAgg.Entities;
 using MaktabGram.Domain.Core.PostAgg.Entities;
 using MaktabGram.Domain.Core.UserAgg.Entities;
+using MaktabGram.Infrastructure.EfCore.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

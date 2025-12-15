@@ -8,6 +8,9 @@ using MaktabGram.Infrastructure.Notifications.Services;
 using MaktabGram.Domain.Core.UserAgg.Contracts.User;
 using MaktabGram.Domain.Core.UserAgg.Contracts.Otp;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 
 
 namespace MaktabGram.Domain.ApplicationServices.UserAgg
@@ -18,9 +21,12 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
         IOtpService otpService,
         SignInManager<IdentityUser<int>> signInManager,
         UserManager<IdentityUser<int>> userManager,
-        RoleManager<IdentityRole<int>> roleManager
+        RoleManager<IdentityRole<int>> roleManager,
+        IHttpContextAccessor httpContextAccessor // <-- add this
         ) : IUserApplicationService
     {
+
+
         public async Task Active(int userId, CancellationToken cancellationToken)
         {
             await userService.Active(userId, cancellationToken);
@@ -43,12 +49,46 @@ namespace MaktabGram.Domain.ApplicationServices.UserAgg
 
         public async Task<Result<UserLoginOutputDto>> Login(string mobile, string password, CancellationToken cancellationToken)
         {
-
             var login = await signInManager.PasswordSignInAsync(mobile, password, false, false);
 
             if (login.Succeeded)
             {
                 var isActive = await userService.IsActive(mobile, cancellationToken);
+
+                var user = await userManager.FindByNameAsync(mobile);
+                if (user != null)
+                {
+
+                    var roles = await userManager.GetRolesAsync(user);
+
+                    // Get the user's claims
+                    var userClaims = await userManager.GetClaimsAsync(user);
+
+                    // Add your custom claim
+                    var claims = new List<Claim>(userClaims)
+                    {
+                        new Claim(ClaimTypes.Gender, "Man")
+                    };
+
+                    // Add identity claims
+                    claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+                    claims.Add(new Claim(ClaimTypes.Name, user.UserName ?? ""));
+                    claims.Add(new Claim(ClaimTypes.Email, user.Email ?? ""));
+
+                    foreach(var role in roles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));   
+                    }
+
+                    var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
+                    var principal = new ClaimsPrincipal(identity);
+
+                    // Sign in with custom claims
+                    await httpContextAccessor.HttpContext.SignInAsync(
+                        IdentityConstants.ApplicationScheme,
+                        principal
+                    );
+                }
 
                 return isActive
                     ? Result<UserLoginOutputDto>.Success("لاگین با موفقیت انجام شد.", new UserLoginOutputDto())

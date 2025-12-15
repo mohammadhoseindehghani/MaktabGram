@@ -5,7 +5,7 @@ public class Mobile
 {
     public string Value { get; set; }
 
-    private Mobile(string value)
+    public Mobile(string value)
     {
         Value = Normalize(value);
         Validate(Value);

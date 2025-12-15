@@ -17,24 +17,24 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
 
         public async Task OnGetAsync(CancellationToken cancellationToken)
         {
-            SearchResult = await userApplicationService.Search(string.Empty, GetUserId(), cancellationToken);
+            SearchResult = await userApplicationService.Search(string.Empty, (int)GetUserId()!, cancellationToken);
         }
 
         [HttpPost]
         public async Task OnPostAsync(string username, CancellationToken cancellationToken)
         {
-            SearchResult = await userApplicationService.Search(username, GetUserId(), cancellationToken);
+            SearchResult = await userApplicationService.Search(username, (int)GetUserId()!, cancellationToken);
         }
 
         public async Task<IActionResult> OnGetFollowAsync(int id, CancellationToken cancellationToken)
         {
-            await followerApplicationService.Follow(GetUserId(), id, cancellationToken);
+            await followerApplicationService.Follow((int)GetUserId()!, id, cancellationToken);
             return RedirectToPage("/Account/Search");
         }
 
         public async Task<IActionResult> OnGetUnFollowAsync(int id, CancellationToken cancellationToken)
         {
-            await followerApplicationService.UnFollow(GetUserId(), id, cancellationToken);
+            await followerApplicationService.UnFollow((int)GetUserId()!, id, cancellationToken);
             return RedirectToPage("/Account/Search");
         }
     }

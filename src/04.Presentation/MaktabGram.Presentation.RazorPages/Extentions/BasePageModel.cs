@@ -1,39 +1,39 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Security.Claims;
 
 namespace MaktabGram.Presentation.RazorPages.Extentions
 {
     public class BasePageModel : PageModel
     {
-        public int GetUserId()
+        public int? GetUserId()
         {
-            return 3;
-            //if (Request.Cookies.TryGetValue("Id", out var userIdStr) &&
-            //    int.TryParse(userIdStr, out var userIdFromCookie))
-            //{
-            //    return userIdFromCookie;
-            //}
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-           //throw new Exception("User is not logged in.");
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                return userId;
+            return null;
         }
 
         public bool IsAdmin()
         {
-            return Request.Cookies.Any(x => x.Key == "IsAdmin" && x.Value == "1");
-
-            throw new Exception("User is not admin.");
+            // Adjust the claim type or value as per your application's admin role setup
+            return User.IsInRole("Admin") ||
+                   User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
         }
 
         public bool UserIsLoggedIn()
         {
-            return Request.Cookies.Any(x => x.Key == "Id");
+            return User.Identity != null && User.Identity.IsAuthenticated;
         }
 
-        //public bool GetUserName()
-        //{
-        //    var username =  Request.Cookies.Where(x => x.Key == "Username").FirstOrDefault();
+        public string? GetUserName()
+        {
+            return User.Identity?.Name ?? User.FindFirst(ClaimTypes.Name)?.Value;
+        }
 
-        //    if(username.)
-        //    throw new Exception("User is not logged in.");
-        //}
+        public string? GetEmail()
+        {
+            return User.FindFirst(ClaimTypes.Email)?.Value;
+        }
     }
 }

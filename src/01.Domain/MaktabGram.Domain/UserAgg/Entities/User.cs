@@ -23,7 +23,7 @@ public class User : BaseEntity
 
     public string? Username { get; set; }
     public string PasswordHash { get; set; }
-    public Mobile Mobile { get; set; }
+    public Mobile? Mobile { get; set; }
     public bool IsActive { get; set; }
     public bool VerifiedBadge { get; private set; }
     public bool IsAdmin { get; set; }

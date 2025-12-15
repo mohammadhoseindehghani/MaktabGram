@@ -34,10 +34,6 @@ namespace MaktabGram.Presentation.RazorPages.Pages.Account
 
             if (loginResult.IsSuccess)
             {
-                cookieService.Set("Id", loginResult.Data.Id.ToString());
-                cookieService.Set("IsAdmin", loginResult.Data.IsAdmin ? "1" : "0");
-                cookieService.Set("Username", loginResult.Data.Username);
-
                 return RedirectToPage("/Account/Profile");
             }
             else
